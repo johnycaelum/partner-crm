@@ -23,9 +23,26 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // TODO: Send real SMS via provider
-  // For now, log to console
-  console.log(`\n📱 SMS Code for ${phone}: ${code}\n`);
+  // Send SMS via SMSC.ru
+  const smscLogin = process.env.SMSC_LOGIN;
+  const smscPassword = process.env.SMSC_PASSWORD;
+
+  if (smscLogin && smscPassword) {
+    try {
+      const smsUrl = `https://smsc.ru/sys/send.php?login=${encodeURIComponent(smscLogin)}&psw=${encodeURIComponent(smscPassword)}&phones=${encodeURIComponent(phone)}&mes=${encodeURIComponent(`Ваш код: ${code}`)}&fmt=3`;
+      const smsRes = await fetch(smsUrl);
+      const smsData = await smsRes.json();
+      console.log(`SMS sent to ${phone}:`, smsData);
+
+      if (smsData.error) {
+        console.error(`SMSC error: ${smsData.error}`);
+      }
+    } catch (e) {
+      console.error("SMS send error:", e);
+    }
+  } else {
+    console.log(`\nSMS Code for ${phone}: ${code}\n`);
+  }
 
   // В dev-режиме возвращаем код прямо в ответе для тестирования
   const isDev = process.env.NODE_ENV !== "production";
