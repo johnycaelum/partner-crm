@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Partner {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  name          String    @default("")
+  referralCode  String    @unique @map("referral_code")
+  referredById  String?   @map("referred_by_id")
+  referredBy    Partner?  @relation("Referrals", fields: [referredById], references: [id])
+  referrals     Partner[] @relation("Referrals")
+  balance       Int       @default(0)
+  paymentInfo   String    @default("") @map("payment_info")
+  cardNumber    String    @default("") @map("card_number")
+  cardHolder    String    @default("") @map("card_holder")
+  bankName      String    @default("") @map("bank_name")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  clients  Client[]
+  rewards  Reward[]
+
+  @@map("partners")
+}
+
+model Client {
+  id           String    @id @default(cuid())
+  name         String
+  phone        String
+  comment      String    @default("")
+  partnerId    String    @map("partner_id")
+  partner      Partner   @relation(fields: [partnerId], references: [id])
+  status       String    @default("pending")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  contractedAt DateTime? @map("contracted_at")
+
+  rewards Reward[]
+
+  @@map("clients")
+}
+
+model Reward {
+  id        String   @id @default(cuid())
+  partnerId String   @map("partner_id")
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+  clientId  String   @map("client_id")
+  client    Client   @relation(fields: [clientId], references: [id])
+  amount    Int
+  type      String
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("rewards")
+}
+
+model Admin {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String @map("password_hash")
+
+  @@map("admins")
+}
+
+model Consultation {
+  id        String   @id @default(cuid())
+  name      String   @default("")
+  phone     String   @default("")
+  messages  String   @default("[]") // JSON array of {role, text}
+  summary   String   @default("")   // AI-extracted summary (debts, property, etc.)
+  status    String   @default("new") // new, contacted, closed
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("consultations")
+}
+
+model SmsCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("sms_codes")
+}
