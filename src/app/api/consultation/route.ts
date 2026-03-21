@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendTelegramMessage } from "@/lib/telegram";
 
 const AI_API_URL = "https://cbucompany-bot-production.up.railway.app/api/chat";
 
