@@ -4,13 +4,12 @@ import bcrypt from "bcryptjs";
 
 // POST — create initial admin user
 export async function POST() {
-  const email = process.env.ADMIN_EMAIL || "admin@company.ru";
-  const password = process.env.ADMIN_PASSWORD || "admin123";
+  const email = process.env.ADMIN_EMAIL || "nineo1639@gmail.com";
+  const password = process.env.ADMIN_PASSWORD || "one92281337";
 
-  const existing = await prisma.admin.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ message: "Админ уже существует" });
-  }
+  // Delete existing admin and recreate
+  await prisma.admin.deleteMany();
+
 
   const passwordHash = await bcrypt.hash(password, 10);
 
