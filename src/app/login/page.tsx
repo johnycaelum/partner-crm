@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [step, setStep] = useState<"phone" | "code" | "not-found">("phone");
   const [phone, setPhone] = useState("+7");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ export default function LoginPage() {
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
     if (data.needsRegistration) {
-      router.push(`/register?phone=${encodeURIComponent(phone)}`);
+      setStep("not-found");
       return;
     }
     router.push("/dashboard");
@@ -62,7 +62,26 @@ export default function LoginPage() {
           <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0 }}>Партнёрская программа от <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>Центра Банкротства Юрист</a></p>
         </div>
 
-        {step === "phone" ? (
+        {step === "not-found" ? (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(245,158,11,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <p style={{ fontSize: "1rem", fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>Аккаунт не найден</p>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 24, lineHeight: 1.6 }}>
+              Номер <strong>{phone}</strong> не зарегистрирован в системе. Зарегистрируйтесь, чтобы стать партнёром.
+            </p>
+            <Link href={`/register?phone=${encodeURIComponent(phone)}`} className="btn-primary" style={{ display: "block", padding: "0.7rem", fontSize: "0.9rem", textDecoration: "none", textAlign: "center" }}>
+              Зарегистрироваться
+            </Link>
+            <button type="button" onClick={() => { setStep("phone"); setCode(""); setError(""); }}
+              style={{ width: "100%", padding: "0.5rem", marginTop: "12px", background: "none", border: "none", color: "#94a3b8", fontSize: "0.82rem", cursor: "pointer" }}>
+              Попробовать другой номер
+            </button>
+          </div>
+        ) : step === "phone" ? (
           <form onSubmit={sendCode}>
             <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>Номер телефона</label>
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" className="input-glass" style={{ marginBottom: "16px" }} />
