@@ -23,19 +23,19 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Send SMS via SMSC.ru
-  const smscLogin = process.env.SMSC_LOGIN;
-  const smscPassword = process.env.SMSC_PASSWORD;
+  // Send SMS via SMS.ru
+  const smsApiId = process.env.SMSRU_API_ID;
 
-  if (smscLogin && smscPassword) {
+  if (smsApiId) {
     try {
-      const smsUrl = `https://smsc.ru/sys/send.php?login=${encodeURIComponent(smscLogin)}&psw=${encodeURIComponent(smscPassword)}&phones=${encodeURIComponent(phone)}&mes=${encodeURIComponent(`Ваш код: ${code}`)}&fmt=3`;
+      const phoneDigits = phone.replace("+", "");
+      const smsUrl = `https://sms.ru/sms/send?api_id=${smsApiId}&to=${phoneDigits}&msg=${encodeURIComponent(`Ваш код: ${code}`)}&json=1`;
       const smsRes = await fetch(smsUrl);
       const smsData = await smsRes.json();
       console.log(`SMS sent to ${phone}:`, smsData);
 
-      if (smsData.error) {
-        console.error(`SMSC error: ${smsData.error}`);
+      if (smsData.status !== "OK") {
+        console.error(`SMS.ru error:`, smsData);
       }
     } catch (e) {
       console.error("SMS send error:", e);
