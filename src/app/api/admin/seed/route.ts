@@ -2,16 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// DELETE — clear all data (temporary)
-export async function DELETE() {
-  await prisma.reward.deleteMany();
-  await prisma.client.deleteMany();
-  await prisma.consultation.deleteMany();
-  await prisma.smsCode.deleteMany();
-  await prisma.partner.deleteMany();
-  return NextResponse.json({ success: true, message: "Все данные удалены" });
-}
-
 // POST — create initial admin user
 export async function POST() {
   const email = process.env.ADMIN_EMAIL || "admin@company.ru";
