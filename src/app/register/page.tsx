@@ -16,31 +16,30 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [step, setStep] = useState<"phone" | "code" | "info">("phone");
-  const [phone, setPhone] = useState("+7");
+  const [step, setStep] = useState<"email" | "code" | "info">("email");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [devCode, setDevCode] = useState("");
-  const [authMethod, setAuthMethod] = useState<"call" | "sms" | "dev">("sms");
 
   useEffect(() => {
-    const phoneParam = searchParams.get("phone");
+    const emailParam = searchParams.get("email");
     const refParam = searchParams.get("ref");
-    if (phoneParam) { setPhone(phoneParam); setStep("info"); }
+    if (emailParam) { setEmail(emailParam); setStep("info"); }
     if (refParam) setReferralCode(refParam);
   }, [searchParams]);
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
-    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
+    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
-    if (data.method) setAuthMethod(data.method);
     const match = data.message?.match(/\d{4}/);
     if (match) setDevCode(match[0]);
     setStep("code");
@@ -49,7 +48,7 @@ function RegisterForm() {
   async function verifyCode(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
-    const res = await fetch("/api/auth/verify-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, code }) });
+    const res = await fetch("/api/auth/verify-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
@@ -60,7 +59,7 @@ function RegisterForm() {
   async function register(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
-    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, name, referralCode: referralCode || undefined }) });
+    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, phone, name, referralCode: referralCode || undefined }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
@@ -85,10 +84,10 @@ function RegisterForm() {
           <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0 }}>Партнёрская программа от <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>Центра Банкротства Юрист</a></p>
         </div>
 
-        {step === "phone" && (
+        {step === "email" && (
           <form onSubmit={sendCode}>
-            <label style={labelStyle}>Номер телефона</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" style={inputStyle} />
+            <label style={labelStyle}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" style={inputStyle} />
             {error && <p style={{ color: "#dc2626", fontSize: "0.82rem", marginBottom: 16 }}>{error}</p>}
             <button type="submit" disabled={loading} style={{ ...btnStyle, opacity: loading ? 0.5 : 1 }}>
               {loading ? "Отправка..." : "Получить код"}
@@ -99,10 +98,7 @@ function RegisterForm() {
         {step === "code" && (
           <form onSubmit={verifyCode}>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 16, textAlign: "center" }}>
-              {authMethod === "call"
-                ? <>Вам поступит звонок на <strong style={{ color: "#1e293b" }}>{phone}</strong> — введите последние 4 цифры номера</>
-                : <>Код отправлен на <strong style={{ color: "#1e293b" }}>{phone}</strong></>
-              }
+              Код отправлен на <strong style={{ color: "#1e293b" }}>{email}</strong>
             </p>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 12, padding: 12, marginBottom: 16, textAlign: "center" }}>
@@ -123,6 +119,8 @@ function RegisterForm() {
           <form onSubmit={register}>
             <label style={labelStyle}>Ваше имя</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Иван Иванов" required style={inputStyle} />
+            <label style={labelStyle}>Телефон (необязательно)</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" style={inputStyle} />
             <label style={labelStyle}>Реферальный код (если есть)</label>
             <input type="text" value={referralCode} onChange={e => setReferralCode(e.target.value)} placeholder="abc12345" style={inputStyle} />
             {error && <p style={{ color: "#dc2626", fontSize: "0.82rem", marginBottom: 16 }}>{error}</p>}

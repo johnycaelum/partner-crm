@@ -4,16 +4,16 @@ import { signToken } from "@/lib/auth";
 import { nanoid } from "nanoid";
 
 export async function POST(req: NextRequest) {
-  const { phone, name, referralCode } = await req.json();
+  const { email, phone, name, referralCode } = await req.json();
 
-  if (!phone || !name) {
-    return NextResponse.json({ error: "Телефон и имя обязательны" }, { status: 400 });
+  if (!email || !name) {
+    return NextResponse.json({ error: "Email и имя обязательны" }, { status: 400 });
   }
 
-  // Check if already exists
-  const existing = await prisma.partner.findUnique({ where: { phone } });
+  // Check if already exists by email
+  const existing = await prisma.partner.findFirst({ where: { email } });
   if (existing) {
-    return NextResponse.json({ error: "Партнёр с этим номером уже зарегистрирован" }, { status: 400 });
+    return NextResponse.json({ error: "Партнёр с этим email уже зарегистрирован" }, { status: 400 });
   }
 
   // Find referrer if code provided
@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
 
   const partner = await prisma.partner.create({
     data: {
-      phone,
+      phone: phone || "",
+      email,
       name,
       referralCode: nanoid(8),
       referredById,

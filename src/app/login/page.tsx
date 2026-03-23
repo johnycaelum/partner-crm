@@ -6,13 +6,12 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "code" | "not-found">("phone");
-  const [phone, setPhone] = useState("+7");
+  const [step, setStep] = useState<"email" | "code" | "not-found">("email");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [devCode, setDevCode] = useState("");
-  const [authMethod, setAuthMethod] = useState<"call" | "sms" | "dev">("sms");
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -21,12 +20,11 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/send-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ email }),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
-    if (data.method) setAuthMethod(data.method);
     const match = data.message?.match(/\d{4}/);
     if (match) setDevCode(match[0]);
     setStep("code");
@@ -39,7 +37,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/verify-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, code }),
+      body: JSON.stringify({ email, code }),
     });
     const data = await res.json();
     setLoading(false);
@@ -73,20 +71,20 @@ export default function LoginPage() {
             </div>
             <p style={{ fontSize: "1rem", fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>Аккаунт не найден</p>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 24, lineHeight: 1.6 }}>
-              Номер <strong>{phone}</strong> не зарегистрирован в системе. Зарегистрируйтесь, чтобы стать партнёром.
+              Email <strong>{email}</strong> не зарегистрирован в системе. Зарегистрируйтесь, чтобы стать партнёром.
             </p>
-            <Link href={`/register?phone=${encodeURIComponent(phone)}`} className="btn-primary" style={{ display: "block", padding: "0.7rem", fontSize: "0.9rem", textDecoration: "none", textAlign: "center" }}>
+            <Link href={`/register?email=${encodeURIComponent(email)}`} className="btn-primary" style={{ display: "block", padding: "0.7rem", fontSize: "0.9rem", textDecoration: "none", textAlign: "center" }}>
               Зарегистрироваться
             </Link>
-            <button type="button" onClick={() => { setStep("phone"); setCode(""); setError(""); }}
+            <button type="button" onClick={() => { setStep("email"); setCode(""); setError(""); }}
               style={{ width: "100%", padding: "0.5rem", marginTop: "12px", background: "none", border: "none", color: "#94a3b8", fontSize: "0.82rem", cursor: "pointer" }}>
-              Попробовать другой номер
+              Попробовать другой email
             </button>
           </div>
-        ) : step === "phone" ? (
+        ) : step === "email" ? (
           <form onSubmit={sendCode}>
-            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>Номер телефона</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" className="input-glass" style={{ marginBottom: "16px" }} />
+            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" className="input-glass" style={{ marginBottom: "16px" }} />
             {error && <p style={{ color: "#dc2626", fontSize: "0.82rem", marginBottom: "16px" }}>{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", padding: "0.7rem", fontSize: "0.9rem" }}>
               {loading ? "Отправка..." : "Получить код"}
@@ -95,10 +93,7 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={verifyCode}>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "16px", textAlign: "center" }}>
-              {authMethod === "call"
-                ? <>Вам поступит звонок на <strong style={{ color: "#1e293b" }}>{phone}</strong> — введите последние 4 цифры номера</>
-                : <>Код отправлен на <strong style={{ color: "#1e293b" }}>{phone}</strong></>
-              }
+              Код отправлен на <strong style={{ color: "#1e293b" }}>{email}</strong>
             </p>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "12px", padding: "12px", marginBottom: "16px", textAlign: "center" }}>
@@ -112,9 +107,9 @@ export default function LoginPage() {
             <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", padding: "0.7rem", fontSize: "0.9rem" }}>
               {loading ? "Проверка..." : "Войти"}
             </button>
-            <button type="button" onClick={() => { setStep("phone"); setCode(""); setError(""); setDevCode(""); }}
+            <button type="button" onClick={() => { setStep("email"); setCode(""); setError(""); setDevCode(""); }}
               style={{ width: "100%", padding: "0.5rem", marginTop: "8px", background: "none", border: "none", color: "#94a3b8", fontSize: "0.82rem", cursor: "pointer" }}>
-              Изменить номер
+              Изменить email
             </button>
           </form>
         )}

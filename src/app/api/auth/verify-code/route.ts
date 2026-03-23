@@ -3,16 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const { phone, code } = await req.json();
+  const { email, code } = await req.json();
 
-  if (!phone || !code) {
-    return NextResponse.json({ error: "Телефон и код обязательны" }, { status: 400 });
+  if (!email || !code) {
+    return NextResponse.json({ error: "Email и код обязательны" }, { status: 400 });
   }
 
   // Find valid code
   const smsCode = await prisma.smsCode.findFirst({
     where: {
-      phone,
+      email,
       code,
       used: false,
       expiresAt: { gt: new Date() },
@@ -30,12 +30,11 @@ export async function POST(req: NextRequest) {
     data: { used: true },
   });
 
-  // Find partner
-  const partner = await prisma.partner.findUnique({ where: { phone } });
+  // Find partner by email
+  const partner = await prisma.partner.findFirst({ where: { email } });
 
   if (!partner) {
-    // Partner not registered yet — return needs_registration
-    return NextResponse.json({ needsRegistration: true, phone });
+    return NextResponse.json({ needsRegistration: true, email });
   }
 
   // Create session
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
     path: "/",
   });
 

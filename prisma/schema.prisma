@@ -10,6 +10,7 @@ datasource db {
 model Partner {
   id            String    @id @default(cuid())
   phone         String    @unique
+  email         String    @default("")
   name          String    @default("")
   referralCode  String    @unique @map("referral_code")
   referredById  String?   @map("referred_by_id")
@@ -81,6 +82,7 @@ model Consultation {
 model SmsCode {
   id        String   @id @default(cuid())
   phone     String
+  email     String   @default("")
   code      String
   expiresAt DateTime @map("expires_at")
   used      Boolean  @default(false)
