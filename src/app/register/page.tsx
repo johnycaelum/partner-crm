@@ -24,6 +24,7 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [devCode, setDevCode] = useState("");
+  const [authMethod, setAuthMethod] = useState<"call" | "sms" | "dev">("sms");
 
   useEffect(() => {
     const phoneParam = searchParams.get("phone");
@@ -39,6 +40,7 @@ function RegisterForm() {
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error); return; }
+    if (data.method) setAuthMethod(data.method);
     const match = data.message?.match(/\d{4}/);
     if (match) setDevCode(match[0]);
     setStep("code");
@@ -97,7 +99,10 @@ function RegisterForm() {
         {step === "code" && (
           <form onSubmit={verifyCode}>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 16, textAlign: "center" }}>
-              Код отправлен на <strong style={{ color: "#1e293b" }}>{phone}</strong>
+              {authMethod === "call"
+                ? <>Вам поступит звонок на <strong style={{ color: "#1e293b" }}>{phone}</strong> — введите последние 4 цифры номера</>
+                : <>Код отправлен на <strong style={{ color: "#1e293b" }}>{phone}</strong></>
+              }
             </p>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 12, padding: 12, marginBottom: 16, textAlign: "center" }}>
