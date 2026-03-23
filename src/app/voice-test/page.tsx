@@ -8,11 +8,13 @@ export default function VoiceTestPage() {
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vapiRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   function initVapi() {
     if (vapiRef.current) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const v = new (window as any).Vapi("aef82e33-ceb9-486e-9cfa-3ad2d5736bd0");
 
     v.on("call-start", () => {
@@ -37,12 +39,14 @@ export default function VoiceTestPage() {
       setStatusClass("active");
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     v.on("message", (msg: any) => {
       if (msg.type === "transcript" && msg.transcriptType === "final") {
         setTranscript(prev => [...prev, { role: msg.role, text: msg.transcript }]);
       }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     v.on("error", (err: any) => {
       console.error("Vapi error:", err);
       setStatus("Ошибка: " + (err.message || "попробуйте снова"));
