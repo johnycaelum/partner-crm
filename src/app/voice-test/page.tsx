@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Script from "next/script";
 
 export default function VoiceTestPage() {
   const [status, setStatus] = useState("Нажмите для начала разговора");
@@ -11,6 +10,14 @@ export default function VoiceTestPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const vapiRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-web.min.js";
+    script.onload = () => setSdkLoaded(true);
+    document.head.appendChild(script);
+  }, []);
 
   function initVapi() {
     if (vapiRef.current) return;
@@ -58,6 +65,7 @@ export default function VoiceTestPage() {
   }
 
   function toggleCall() {
+    if (!sdkLoaded) { setStatus("SDK загружается..."); return; }
     initVapi();
     if (isActive) {
       vapiRef.current?.stop();
@@ -76,7 +84,6 @@ export default function VoiceTestPage() {
 
   return (
     <>
-      <Script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-web.min.js" strategy="beforeInteractive" />
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.9)", borderRadius: 28, padding: "48px 36px", maxWidth: 420, width: "100%", textAlign: "center", boxShadow: "0 8px 32px rgba(59,130,246,0.1)" }}>
 
