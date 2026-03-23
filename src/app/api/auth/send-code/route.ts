@@ -2,12 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
+  const { email, intent } = await req.json();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json(
       { error: "Введите корректный email" },
       { status: 400 }
+    );
+  }
+
+  // Check if partner exists
+  const existing = await prisma.partner.findFirst({ where: { email } });
+
+  if (intent === "register" && existing) {
+    return NextResponse.json(
+      { error: "Этот email уже зарегистрирован", redirect: "/login" },
+      { status: 409 }
+    );
+  }
+
+  if (intent === "login" && !existing) {
+    return NextResponse.json(
+      { error: "Аккаунт не найден", redirect: "/register" },
+      { status: 404 }
     );
   }
 

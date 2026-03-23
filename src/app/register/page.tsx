@@ -36,10 +36,13 @@ function RegisterForm() {
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
-    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, intent: "register" }) });
     const data = await res.json();
     setLoading(false);
-    if (!res.ok) { setError(data.error); return; }
+    if (!res.ok) {
+      if (data.redirect) { router.push(`${data.redirect}?email=${encodeURIComponent(email)}`); return; }
+      setError(data.error); return;
+    }
     const match = data.message?.match(/\d{4}/);
     if (match) setDevCode(match[0]);
     setStep("code");

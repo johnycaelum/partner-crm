@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>Загрузка...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<"email" | "code" | "not-found">("email");
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) setEmail(emailParam);
+  }, [searchParams]);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,11 +34,14 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/send-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, intent: "login" }),
     });
     const data = await res.json();
     setLoading(false);
-    if (!res.ok) { setError(data.error); return; }
+    if (!res.ok) {
+      if (data.redirect) { router.push(`${data.redirect}?email=${encodeURIComponent(email)}`); return; }
+      setError(data.error); return;
+    }
     const match = data.message?.match(/\d{4}/);
     if (match) setDevCode(match[0]);
     setStep("code");
