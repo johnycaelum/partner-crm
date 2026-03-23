@@ -29,7 +29,7 @@ function RegisterForm() {
   useEffect(() => {
     const emailParam = searchParams.get("email");
     const refParam = searchParams.get("ref");
-    if (emailParam) { setEmail(emailParam); setStep("info"); }
+    if (emailParam) { setEmail(emailParam); }
     if (refParam) setReferralCode(refParam);
   }, [searchParams]);
 
