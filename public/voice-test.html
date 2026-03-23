@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Голосовой AI — Тест</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#dbeafe,#f0f9ff,#ede9fe);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.9);border-radius:28px;padding:48px 36px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(59,130,246,0.1)}
+h1{font-size:1.5rem;font-weight:800;color:#0f172a;margin-bottom:8px}
+p{color:#64748b;font-size:0.9rem;line-height:1.6;margin-bottom:24px}
+.btn{width:120px;height:120px;border-radius:50%;border:none;cursor:pointer;font-size:1rem;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:all 0.3s ease}
+.btn-start{background:linear-gradient(135deg,#3b82f6,#818cf8);box-shadow:0 8px 32px rgba(59,130,246,0.4)}
+.btn-start:hover{transform:scale(1.05);box-shadow:0 12px 40px rgba(59,130,246,0.5)}
+.btn-stop{background:linear-gradient(135deg,#ef4444,#f97316);box-shadow:0 8px 32px rgba(239,68,68,0.4);animation:pulse 1.5s ease-in-out infinite}
+.btn-stop:hover{transform:scale(1.05)}
+@keyframes pulse{0%,100%{box-shadow:0 8px 32px rgba(239,68,68,0.4)}50%{box-shadow:0 8px 48px rgba(239,68,68,0.6)}}
+.status{font-size:0.85rem;color:#94a3b8;min-height:24px;margin-bottom:16px}
+.status.active{color:#16a34a}
+.status.error{color:#dc2626}
+.transcript{background:rgba(241,245,249,0.7);border:1px solid rgba(203,213,225,0.6);border-radius:16px;padding:16px;margin-top:20px;text-align:left;max-height:200px;overflow-y:auto;font-size:0.82rem;color:#334155;line-height:1.6;display:none}
+.transcript.show{display:block}
+.transcript .ai{color:#3b82f6;font-weight:600}
+.transcript .user{color:#8b5cf6;font-weight:600}
+.brand{margin-top:24px;font-size:0.75rem;color:#94a3b8}
+.brand a{color:#3b82f6;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Голосовая консультация</h1>
+  <p>Нажмите кнопку и задайте вопрос о банкротстве. AI-помощник ответит голосом.</p>
+
+  <div class="status" id="status">Нажмите для начала разговора</div>
+
+  <button class="btn btn-start" id="callBtn" onclick="toggleCall()">
+    <svg id="micIcon" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+    </svg>
+  </button>
+
+  <div class="transcript" id="transcript"></div>
+
+  <div class="brand">Партнёрская программа от <a href="https://cbucompany.ru" target="_blank">Центра Банкротства Юрист</a></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-web.min.js"></script>
+<script>
+const VAPI_PUBLIC_KEY = "aef82e33-ceb9-486e-9cfa-3ad2d5736bd0";
+const ASSISTANT_ID = "54144acf-b3ad-4306-a767-d215502e1347";
+
+let vapi;
+let isCallActive = false;
+
+function initVapi() {
+  vapi = new window.Vapi(VAPI_PUBLIC_KEY);
+
+  vapi.on("call-start", () => {
+    isCallActive = true;
+    updateUI("active", "Соединение установлено — говорите!");
+    document.getElementById("callBtn").className = "btn btn-stop";
+  });
+
+  vapi.on("call-end", () => {
+    isCallActive = false;
+    updateUI("", "Разговор завершён");
+    document.getElementById("callBtn").className = "btn btn-start";
+  });
+
+  vapi.on("speech-start", () => {
+    updateUI("active", "AI говорит...");
+  });
+
+  vapi.on("speech-end", () => {
+    updateUI("active", "Слушаю вас...");
+  });
+
+  vapi.on("message", (msg) => {
+    if (msg.type === "transcript") {
+      const t = document.getElementById("transcript");
+      t.classList.add("show");
+      const role = msg.role === "assistant" ? "ai" : "user";
+      const label = msg.role === "assistant" ? "AI" : "Вы";
+      if (msg.transcriptType === "final") {
+        t.innerHTML += `<div><span class="${role}">${label}:</span> ${msg.transcript}</div>`;
+        t.scrollTop = t.scrollHeight;
+      }
+    }
+  });
+
+  vapi.on("error", (err) => {
+    console.error("Vapi error:", err);
+    updateUI("error", "Ошибка: " + (err.message || "попробуйте снова"));
+    isCallActive = false;
+    document.getElementById("callBtn").className = "btn btn-start";
+  });
+}
+
+function toggleCall() {
+  if (!vapi) initVapi();
+
+  if (isCallActive) {
+    vapi.stop();
+  } else {
+    updateUI("", "Подключение...");
+    vapi.start(ASSISTANT_ID);
+  }
+}
+
+function updateUI(cls, text) {
+  const s = document.getElementById("status");
+  s.className = "status" + (cls ? " " + cls : "");
+  s.textContent = text;
+}
+</script>
+</body>
+</html>
