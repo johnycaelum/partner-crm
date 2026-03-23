@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${geistSans.variable} antialiased`} style={{ margin: 0, fontFamily: "var(--font-geist-sans), system-ui, -apple-system, sans-serif" }}>
+      <body className={`${inter.variable} antialiased`} style={{ margin: 0, fontFamily: "var(--font-inter), system-ui, -apple-system, sans-serif" }}>
         {children}
       </body>
     </html>
