@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 const AI_API_URL = "https://cbucompany-bot-production.up.railway.app/api/chat";
 
@@ -65,6 +66,10 @@ export async function PATCH(req: NextRequest) {
     where: { id: consultationId },
     data: { name, phone, summary },
   });
+
+  // Send to Telegram
+  const tgText = `<b>▸ Заявка с партнёрского сайта</b>\n─────────────\n<b>Имя:</b> ${name}\n<b>Тел:</b> ${phone}\n─────────────\n<b>Диалог:</b>\n${summary}\n─────────────\n${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Krasnoyarsk" })}`;
+  await sendTelegramMessage(tgText);
 
   return NextResponse.json({ success: true });
 }
