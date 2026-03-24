@@ -61,7 +61,7 @@ export default function VoiceTestPage() {
     } else {
       setStatus("Подключение...");
       setStatusClass("");
-      vapiRef.current?.start("54144acf-b3ad-4306-a767-d215502e1347");
+      vapiRef.current?.start("ccb042f1-a527-4281-92c7-3926ad16fb6b");
     }
   }
 
