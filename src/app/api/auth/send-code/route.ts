@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
+  try {
   const { email, intent } = await req.json();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -80,4 +81,9 @@ export async function POST(req: NextRequest) {
     success: true,
     message: isDev ? `Code sent: ${code}` : "Код отправлен на email",
   });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    console.error("send-code error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
