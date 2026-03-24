@@ -50,23 +50,23 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Центр Банкротства Юрист <noreply@cbupartner.ru>",
+          from: "CBU Partner <noreply@cbupartner.ru>",
           to: email,
-          subject: `Код подтверждения: ${code}`,
-          html: `
+          subject: `Kod podtverzhdeniya: ${code}`,
+          html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
             <div style="font-family: system-ui, sans-serif; max-width: 400px; margin: 0 auto; padding: 32px;">
               <div style="text-align: center; margin-bottom: 24px;">
                 <div style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #3b82f6, #818cf8); display: inline-flex; align-items: center; justify-content: center;">
-                  <span style="color: white; font-size: 20px; font-weight: bold;">₽</span>
+                  <span style="color: white; font-size: 20px; font-weight: bold;">P</span>
                 </div>
               </div>
-              <h2 style="text-align: center; color: #0f172a; margin: 0 0 8px;">Ваш код подтверждения</h2>
+              <h2 style="text-align: center; color: #0f172a; margin: 0 0 8px;">Vash kod podtverzhdeniya</h2>
               <div style="text-align: center; font-size: 36px; font-weight: 900; letter-spacing: 0.2em; color: #3b82f6; margin: 24px 0; padding: 16px; background: #f0f9ff; border-radius: 12px;">${code}</div>
-              <p style="text-align: center; color: #64748b; font-size: 14px; margin: 0;">Код действителен 10 минут</p>
+              <p style="text-align: center; color: #64748b; font-size: 14px; margin: 0;">Kod deystvitelen 10 minut</p>
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-              <p style="text-align: center; color: #94a3b8; font-size: 12px; margin: 0;">Партнёрская программа от <a href="https://cbucompany.ru" style="color: #3b82f6;">Центра Банкротства Юрист</a></p>
+              <p style="text-align: center; color: #94a3b8; font-size: 12px; margin: 0;">cbucompany.ru</p>
             </div>
-          `,
+          </body></html>`,
         }),
       });
       const data = await res.json();
