@@ -4,6 +4,7 @@ import { signToken } from "@/lib/auth";
 import { nanoid } from "nanoid";
 
 export async function POST(req: NextRequest) {
+  try {
   const { email, phone, name, referralCode } = await req.json();
 
   if (!email || !name) {
@@ -49,4 +50,9 @@ export async function POST(req: NextRequest) {
   });
 
   return response;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    console.error("register error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
