@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "CBU Partner <onboarding@resend.dev>",
+          from: "Центр Банкротства Юрист <noreply@cbupartner.ru>",
           to: email,
           subject: `Код подтверждения: ${code}`,
           html: `
