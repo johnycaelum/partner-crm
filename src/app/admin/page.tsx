@@ -31,6 +31,12 @@ export default function AdminClientsPage() {
     loadClients();
   }
 
+  async function deleteClient(clientId: string) {
+    if (!confirm("Delete this client?")) return;
+    await fetch("/api/admin/clients", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId }) });
+    loadClients();
+  }
+
   if (loading) return null;
 
   const pending = clients.filter(c => c.status === "pending");
@@ -76,6 +82,12 @@ export default function AdminClientsPage() {
                   }}>
                     Отклонить
                   </button>
+                  <button onClick={() => deleteClient(client.id)} style={{
+                    padding: "8px 20px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)",
+                    color: "#ef4444", borderRadius: 10, fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s ease",
+                  }}>
+                    Удалить
+                  </button>
                 </div>
               </div>
             ))}
@@ -95,6 +107,7 @@ export default function AdminClientsPage() {
                   <th style={thStyle}>Партнёр</th>
                   <th style={thStyle}>Статус</th>
                   <th style={thStyle}>Дата</th>
+                  <th style={thStyle}></th>
                 </tr>
               </thead>
               <tbody>
@@ -114,6 +127,11 @@ export default function AdminClientsPage() {
                       </span>
                     </td>
                     <td style={{ ...tdStyle, color: "#475569" }}>{new Date(c.createdAt).toLocaleDateString("ru-RU")}</td>
+                    <td style={tdStyle}>
+                      <button onClick={() => deleteClient(c.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>
+                        Удалить
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

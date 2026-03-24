@@ -55,3 +55,21 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+// DELETE — delete client
+export async function DELETE(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  }
+
+  const { clientId } = await req.json();
+  if (!clientId) {
+    return NextResponse.json({ error: "clientId required" }, { status: 400 });
+  }
+
+  await prisma.reward.deleteMany({ where: { clientId } });
+  await prisma.client.delete({ where: { id: clientId } });
+
+  return NextResponse.json({ success: true });
+}

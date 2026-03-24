@@ -36,6 +36,12 @@ export default function AdminConsultationsPage() {
     load();
   }
 
+  async function deleteConsultation(id: string) {
+    if (!confirm("Delete this consultation?")) return;
+    await fetch("/api/admin/consultations", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    load();
+  }
+
   if (loading) return null;
 
   return (
@@ -101,6 +107,12 @@ export default function AdminConsultationsPage() {
                       Закрыть
                     </button>
                   )}
+                  <button onClick={() => deleteConsultation(c.id)} style={{
+                    padding: "6px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                    color: "#ef4444", borderRadius: 8, fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
+                  }}>
+                    Удалить
+                  </button>
                 </div>
 
                 {/* Expanded messages */}
