@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
   });
 
   // Send to Telegram
-  const tgText = `<b>▸ Заявка с партнёрского сайта</b>\n─────────────\n<b>Имя:</b> ${name}\n<b>Тел:</b> ${phone}\n─────────────\n<b>Диалог:</b>\n${summary}\n─────────────\n${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Krasnoyarsk" })}`;
+  const tgText = `<b>New consultation request</b>\n<b>Name:</b> ${name}\n<b>Phone:</b> ${phone}\n<b>Dialog:</b>\n${summary}\n${new Date().toISOString()}`;
   await sendTelegramMessage(tgText);
 
   return NextResponse.json({ success: true });
