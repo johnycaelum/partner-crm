@@ -1,28 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Vapi from "@vapi-ai/web";
 
 export default function VoiceTestPage() {
   const [status, setStatus] = useState("Нажмите для начала разговора");
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vapiRef = useRef<any>(null);
+  const vapiRef = useRef<Vapi | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-web.min.js";
-    script.onload = () => setSdkLoaded(true);
-    document.head.appendChild(script);
-  }, []);
 
   function initVapi() {
     if (vapiRef.current) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const v = new (window as any).Vapi("aef82e33-ceb9-486e-9cfa-3ad2d5736bd0");
+    const v = new Vapi("aef82e33-ceb9-486e-9cfa-3ad2d5736bd0");
 
     v.on("call-start", () => {
       setIsActive(true);
@@ -46,17 +37,16 @@ export default function VoiceTestPage() {
       setStatusClass("active");
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    v.on("message", (msg: any) => {
+    v.on("message", (msg) => {
       if (msg.type === "transcript" && msg.transcriptType === "final") {
-        setTranscript(prev => [...prev, { role: msg.role, text: msg.transcript }]);
+        const role = msg.role === "assistant" ? "assistant" : "user";
+        setTranscript(prev => [...prev, { role, text: msg.transcript }]);
       }
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    v.on("error", (err: any) => {
+    v.on("error", (err) => {
       console.error("Vapi error:", err);
-      setStatus("Ошибка: " + (err.message || "попробуйте снова"));
+      setStatus("Ошибка: попробуйте снова");
       setStatusClass("error");
       setIsActive(false);
     });
@@ -65,7 +55,6 @@ export default function VoiceTestPage() {
   }
 
   function toggleCall() {
-    if (!sdkLoaded) { setStatus("SDK загружается..."); return; }
     initVapi();
     if (isActive) {
       vapiRef.current?.stop();
