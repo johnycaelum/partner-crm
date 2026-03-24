@@ -83,7 +83,7 @@ export default function ReferralPage() {
     if (!res.ok) { setError(data.error); return; }
     // Also save consultation contact
     if (consultationId && clientName && clientPhone) {
-      fetch("/api/consultation", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ consultationId, name: clientName, phone: clientPhone }) });
+      await fetch("/api/consultation", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ consultationId, name: clientName, phone: clientPhone }) });
     }
     setMode("success");
   }
