@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
   });
 
   // Send to Telegram
-  const commentFormatted = (comment || "Не указано").replace(/\n/g, "\n   ");
+  const commentFormatted = (comment || "N/A").replace(/\n/g, "\n   ");
   const tgText =
-    `📋 <b>Новая заявка от клиента</b>\n\n` +
-    `👤 <b>Имя:</b> ${name}\n` +
-    `📱 <b>Телефон:</b> ${phone}\n` +
-    `👥 <b>Партнёр:</b> ${partner.name} (${partner.phone})\n\n` +
-    `📝 <b>Данные:</b>\n   ${commentFormatted}`;
+    `<b>New client request</b>\n\n` +
+    `<b>Name:</b> ${name}\n` +
+    `<b>Phone:</b> ${phone}\n` +
+    `<b>Partner:</b> ${partner.name} (${partner.phone || partner.email})\n\n` +
+    `<b>Details:</b>\n   ${commentFormatted}`;
 
   await sendTelegramMessage(tgText);
 
