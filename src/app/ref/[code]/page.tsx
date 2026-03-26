@@ -24,7 +24,7 @@ export default function ReferralPage() {
   const [hasProperty, setHasProperty] = useState("");
 
   // Partner form
-  const [partnerPhone, setPartnerPhone] = useState("+7");
+  const [partnerEmail, setPartnerEmail] = useState("");
   const [smsCode, setSmsCode] = useState("");
   const [partnerName, setPartnerName] = useState("");
   const [devCode, setDevCode] = useState("");
@@ -91,7 +91,7 @@ export default function ReferralPage() {
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault(); setError(""); setLoading(true);
-    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: partnerPhone }) });
+    const res = await fetch("/api/auth/send-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: partnerEmail, intent: "register" }) });
     const data = await res.json(); setLoading(false);
     if (!res.ok) { setError(data.error); return; }
     const match = data.message?.match(/\d{4}/);
@@ -101,7 +101,7 @@ export default function ReferralPage() {
 
   async function verifyCode(e: React.FormEvent) {
     e.preventDefault(); setError(""); setLoading(true);
-    const res = await fetch("/api/auth/verify-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: partnerPhone, code: smsCode }) });
+    const res = await fetch("/api/auth/verify-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: partnerEmail, code: smsCode }) });
     const data = await res.json(); setLoading(false);
     if (!res.ok) { setError(data.error); return; }
     if (data.needsRegistration) { setMode("partner-info"); return; }
@@ -110,7 +110,7 @@ export default function ReferralPage() {
 
   async function registerPartner(e: React.FormEvent) {
     e.preventDefault(); setError(""); setLoading(true);
-    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: partnerPhone, name: partnerName, referralCode }) });
+    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: partnerEmail, name: partnerName, referralCode }) });
     const data = await res.json(); setLoading(false);
     if (!res.ok) { setError(data.error); return; }
     router.push("/dashboard");
@@ -353,8 +353,8 @@ export default function ReferralPage() {
               <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Зарабатывайте от 10 000 ₽ за каждого клиента</p>
             </div>
             <form onSubmit={sendCode}>
-              <label style={labelStyle}>Номер телефона</label>
-              <input type="tel" value={partnerPhone} onChange={e => setPartnerPhone(e.target.value)} placeholder="+79001234567" className="ref-input" />
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={partnerEmail} onChange={e => setPartnerEmail(e.target.value)} placeholder="name@example.com" className="ref-input" />
               {errorEl}
               <button type="submit" disabled={loading} className="ref-submit">{loading ? "Отправка..." : "Получить код"}</button>
             </form>
@@ -367,7 +367,7 @@ export default function ReferralPage() {
             <button onClick={() => { setMode("partner"); setError(""); setDevCode(""); setSmsCode(""); }} className="ref-back">{backIcon} Назад</button>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <h1 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>Введите код</h1>
-              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Код отправлен на <strong style={{ color: "#1e293b" }}>{partnerPhone}</strong></p>
+              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Код отправлен на <strong style={{ color: "#1e293b" }}>{partnerEmail}</strong></p>
             </div>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 12, padding: 12, marginBottom: 16, textAlign: "center" }}>

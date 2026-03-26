@@ -29,16 +29,27 @@ export async function POST(req: NextRequest) {
   });
 
   // Send to Telegram (don't await - fire and forget)
-  const commentClean = (comment || "N/A").replace(/[^\x20-\x7E\n]/g, "?");
   const partnerInfo = partner.name || partner.email || "unknown";
-  const tgText =
-    `<b>New client</b>\n` +
-    `<b>Name:</b> ${name}\n` +
-    `<b>Phone:</b> ${phone}\n` +
-    `<b>Partner:</b> ${partnerInfo}\n` +
-    `<b>Info:</b> ${commentClean}`;
+  const tgText = [
+    "New client request",
+    "",
+    "Name: " + name,
+    "Phone: " + phone,
+    "Partner: " + partnerInfo,
+    "",
+    comment || "N/A",
+  ].join("\n");
 
-  sendTelegramMessage(tgText).catch(() => {});
+  // Send without HTML parse mode to avoid encoding issues
+  const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN || "";
+  const TG_CHAT_ID = process.env.TG_CHAT_ID || "";
+  if (TG_BOT_TOKEN && TG_CHAT_ID) {
+    fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ chat_id: TG_CHAT_ID, text: tgText }),
+    }).catch(() => {});
+  }
 
   return NextResponse.json({ success: true, clientId: client.id });
 }
