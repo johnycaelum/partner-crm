@@ -28,16 +28,17 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Send to Telegram
-  const commentFormatted = (comment || "N/A").replace(/\n/g, "\n   ");
+  // Send to Telegram (don't await - fire and forget)
+  const commentClean = (comment || "N/A").replace(/[^\x20-\x7E\n]/g, "?");
+  const partnerInfo = partner.name || partner.email || "unknown";
   const tgText =
-    `<b>New client request</b>\n\n` +
+    `<b>New client</b>\n` +
     `<b>Name:</b> ${name}\n` +
     `<b>Phone:</b> ${phone}\n` +
-    `<b>Partner:</b> ${partner.name} (${partner.phone || partner.email})\n\n` +
-    `<b>Details:</b>\n   ${commentFormatted}`;
+    `<b>Partner:</b> ${partnerInfo}\n` +
+    `<b>Info:</b> ${commentClean}`;
 
-  await sendTelegramMessage(tgText);
+  sendTelegramMessage(tgText).catch(() => {});
 
   return NextResponse.json({ success: true, clientId: client.id });
 }
