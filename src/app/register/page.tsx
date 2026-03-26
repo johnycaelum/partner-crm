@@ -102,6 +102,7 @@ function RegisterForm() {
           <form onSubmit={verifyCode}>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: 16, textAlign: "center" }}>
               Код отправлен на <strong style={{ color: "#1e293b" }}>{email}</strong>
+              <br /><span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>Если письма нет во входящих — проверьте папку Спам</span>
             </p>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 12, padding: 12, marginBottom: 16, textAlign: "center" }}>

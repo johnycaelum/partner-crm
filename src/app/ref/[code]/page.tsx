@@ -368,7 +368,7 @@ export default function ReferralPage() {
             <button onClick={() => { setMode("partner"); setError(""); setDevCode(""); setSmsCode(""); }} className="ref-back">{backIcon} Назад</button>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <h1 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>Введите код</h1>
-              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Код отправлен на <strong style={{ color: "#1e293b" }}>{partnerEmail}</strong></p>
+              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Код отправлен на <strong style={{ color: "#1e293b" }}>{partnerEmail}</strong><br /><span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>Если письма нет во входящих — проверьте папку Спам</span></p>
             </div>
             {devCode && (
               <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 12, padding: 12, marginBottom: 16, textAlign: "center" }}>
