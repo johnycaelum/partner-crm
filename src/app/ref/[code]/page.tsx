@@ -79,13 +79,14 @@ export default function ReferralPage() {
       hasProperty && `Имущество: ${hasProperty}`,
     ].filter(Boolean).join("\n");
     const res = await fetch("/api/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: clientName, phone: clientPhone, comment, referralCode }) });
-    const data = await res.json(); setLoading(false);
-    if (!res.ok) { setError(data.error); return; }
+    const data = await res.json();
+    if (!res.ok) { setError(data.error); setLoading(false); return; }
     // Also save consultation contact
     if (consultationId && clientName && clientPhone) {
       await fetch("/api/consultation", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ consultationId, name: clientName, phone: clientPhone }) });
     }
     setMode("success");
+    setLoading(false);
   }
 
   async function sendCode(e: React.FormEvent) {
