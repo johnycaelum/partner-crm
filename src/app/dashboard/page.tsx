@@ -80,9 +80,7 @@ export default function DashboardPage() {
         <div className="glass rounded-2xl p-6 card-hover anim-fade-up">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(34,197,94,0.12)" }}>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#16a34a" strokeWidth={2}>
-                <text x="12" y="16" textAnchor="middle" fill="#16a34a" fontSize="14" fontWeight="bold">₽</text>
-              </svg>
+              <span style={{ color: "#16a34a", fontSize: "18px", fontWeight: 800 }}>₽</span>
             </div>
             <span className="badge-green">{data.balance > 0 ? "Активно" : "0 ₽"}</span>
           </div>
