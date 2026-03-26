@@ -24,7 +24,7 @@ export default function ProfilePage() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await fetch("/api/partner/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, paymentInfo, cardNumber, cardHolder, bankName }) });
+    await fetch("/api/partner/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, phone, paymentInfo, cardNumber, cardHolder, bankName }) });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -45,7 +45,7 @@ export default function ProfilePage() {
           <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-glass" style={{ marginBottom: "16px" }} />
 
           <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>Телефон</label>
-          <input type="tel" value={phone} disabled className="input-glass" style={{ marginBottom: "16px", opacity: 0.6 }} />
+          <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" className="input-glass" style={{ marginBottom: "16px" }} />
 
           <div style={{ marginBottom: "20px", padding: "20px", background: "rgba(59,130,246,0.04)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "16px" }}>
             <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#1e293b", marginBottom: "16px", marginTop: 0 }}>Реквизиты для выплат</p>

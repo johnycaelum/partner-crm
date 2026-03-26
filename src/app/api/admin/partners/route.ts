@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth";
 
@@ -17,4 +17,20 @@ export async function GET() {
   });
 
   return NextResponse.json(partners);
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  }
+
+  const { partnerId } = await req.json();
+
+  // Delete related records first
+  await prisma.reward.deleteMany({ where: { partnerId } });
+  await prisma.client.deleteMany({ where: { partnerId } });
+  await prisma.partner.delete({ where: { id: partnerId } });
+
+  return NextResponse.json({ success: true });
 }

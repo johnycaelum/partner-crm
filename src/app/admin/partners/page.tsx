@@ -22,9 +22,17 @@ export default function AdminPartnersPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  function loadPartners() {
     fetch("/api/admin/partners").then(r => r.json()).then(data => { setPartners(Array.isArray(data) ? data : []); setLoading(false); });
-  }, []);
+  }
+
+  useEffect(() => { loadPartners(); }, []);
+
+  async function deletePartner(id: string) {
+    if (!confirm("Delete this partner?")) return;
+    await fetch("/api/admin/partners", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ partnerId: id }) });
+    loadPartners();
+  }
 
   if (loading) return null;
 
@@ -52,6 +60,7 @@ export default function AdminPartnersPage() {
                 <th style={thStyle}>Баланс</th>
                 <th style={thStyle}>Реквизиты</th>
                 <th style={thStyle}>Дата</th>
+                <th style={thStyle}></th>
               </tr>
             </thead>
             <tbody>
@@ -69,6 +78,11 @@ export default function AdminPartnersPage() {
                   <td style={{ ...tdStyle, color: "#4ade80", fontWeight: 700 }}>{p.balance.toLocaleString("ru-RU")} ₽</td>
                   <td style={{ ...tdStyle, color: "#94a3b8", fontSize: "0.8rem" }}>{p.paymentInfo || "—"}</td>
                   <td style={{ ...tdStyle, color: "#475569" }}>{new Date(p.createdAt).toLocaleDateString("ru-RU")}</td>
+                  <td style={tdStyle}>
+                    <button onClick={() => deletePartner(p.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>
+                      Удалить
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -21,12 +21,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
   }
 
-  const { name, paymentInfo, cardNumber, cardHolder, bankName } = await req.json();
+  const { name, phone, paymentInfo, cardNumber, cardHolder, bankName } = await req.json();
 
   const partner = await prisma.partner.update({
     where: { id: session.id },
     data: {
       ...(name !== undefined && { name }),
+      ...(phone !== undefined && { phone }),
       ...(paymentInfo !== undefined && { paymentInfo }),
       ...(cardNumber !== undefined && { cardNumber }),
       ...(cardHolder !== undefined && { cardHolder }),
