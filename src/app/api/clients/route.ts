@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPartnerSession } from "@/lib/auth";
-import { sendTelegramMessage } from "@/lib/telegram";
 
 // POST — submit client application (from referral link)
 export async function POST(req: NextRequest) {
