@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
   try {
   const { email, phone, name, referralCode } = await req.json();
 
-  if (!email || !name) {
-    return NextResponse.json({ error: "Email и имя обязательны" }, { status: 400 });
+  if (!email || !name || !phone) {
+    return NextResponse.json({ error: "Email, имя и телефон обязательны" }, { status: 400 });
   }
 
   // Check if already exists by email

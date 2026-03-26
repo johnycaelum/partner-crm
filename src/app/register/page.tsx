@@ -122,8 +122,8 @@ function RegisterForm() {
           <form onSubmit={register}>
             <label style={labelStyle}>Ваше имя</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Иван Иванов" required style={inputStyle} />
-            <label style={labelStyle}>Телефон (необязательно)</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" style={inputStyle} />
+            <label style={labelStyle}>Телефон</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+79001234567" required style={inputStyle} />
             <label style={labelStyle}>Реферальный код (если есть)</label>
             <input type="text" value={referralCode} onChange={e => setReferralCode(e.target.value)} placeholder="abc12345" style={inputStyle} />
             {error && <p style={{ color: "#dc2626", fontSize: "0.82rem", marginBottom: 16 }}>{error}</p>}

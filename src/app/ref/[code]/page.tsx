@@ -25,6 +25,7 @@ export default function ReferralPage() {
 
   // Partner form
   const [partnerEmail, setPartnerEmail] = useState("");
+  const [partnerPhone, setPartnerPhone] = useState("+7");
   const [smsCode, setSmsCode] = useState("");
   const [partnerName, setPartnerName] = useState("");
   const [devCode, setDevCode] = useState("");
@@ -110,7 +111,7 @@ export default function ReferralPage() {
 
   async function registerPartner(e: React.FormEvent) {
     e.preventDefault(); setError(""); setLoading(true);
-    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: partnerEmail, name: partnerName, referralCode }) });
+    const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: partnerEmail, phone: partnerPhone, name: partnerName, referralCode }) });
     const data = await res.json(); setLoading(false);
     if (!res.ok) { setError(data.error); return; }
     router.push("/dashboard");
@@ -392,11 +393,13 @@ export default function ReferralPage() {
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#16a34a" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               </div>
               <h1 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>Почти готово!</h1>
-              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Укажите имя для регистрации</p>
+              <p style={{ color: "#64748b", fontSize: "0.85rem", margin: 0 }}>Укажите данные для регистрации</p>
             </div>
             <form onSubmit={registerPartner}>
               <label style={labelStyle}>Ваше имя</label>
               <input type="text" value={partnerName} onChange={e => setPartnerName(e.target.value)} placeholder="Иван Иванов" required className="ref-input" />
+              <label style={labelStyle}>Телефон</label>
+              <input type="tel" value={partnerPhone} onChange={e => setPartnerPhone(e.target.value)} placeholder="+79001234567" required className="ref-input" />
               {errorEl}
               <button type="submit" disabled={loading} className="ref-submit">{loading ? "Регистрация..." : "Зарегистрироваться"}</button>
             </form>
