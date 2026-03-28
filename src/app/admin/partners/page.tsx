@@ -9,6 +9,9 @@ interface Partner {
   referralCode: string;
   balance: number;
   paymentInfo: string;
+  cardNumber: string;
+  cardHolder: string;
+  bankName: string;
   createdAt: string;
   referredBy: { name: string; phone: string } | null;
   _count: { clients: number; referrals: number };
@@ -76,7 +79,15 @@ export default function AdminPartnersPage() {
                     <span style={{ padding: "2px 8px", borderRadius: 9999, fontSize: "0.72rem", fontWeight: 600, background: "rgba(168,85,247,0.12)", color: "#c084fc", border: "1px solid rgba(168,85,247,0.25)" }}>{p._count.referrals}</span>
                   </td>
                   <td style={{ ...tdStyle, color: "#4ade80", fontWeight: 700 }}>{p.balance.toLocaleString("ru-RU")} ₽</td>
-                  <td style={{ ...tdStyle, color: "#94a3b8", fontSize: "0.8rem" }}>{p.paymentInfo || "—"}</td>
+                  <td style={{ ...tdStyle, color: "#94a3b8", fontSize: "0.8rem" }}>
+                    {p.cardNumber || p.cardHolder || p.bankName ? (
+                      <div>
+                        {p.cardNumber && <div>{p.cardNumber}</div>}
+                        {p.cardHolder && <div>{p.cardHolder}</div>}
+                        {p.bankName && <div>{p.bankName}</div>}
+                      </div>
+                    ) : p.paymentInfo || "—"}
+                  </td>
                   <td style={{ ...tdStyle, color: "#475569" }}>{new Date(p.createdAt).toLocaleDateString("ru-RU")}</td>
                   <td style={tdStyle}>
                     <button onClick={() => deletePartner(p.id)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>
