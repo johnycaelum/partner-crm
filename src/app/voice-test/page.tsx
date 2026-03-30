@@ -61,14 +61,28 @@ export default function VoiceTestPage() {
     } else {
       setStatus("Подключение...");
       setStatusClass("");
+      const prompt = [
+        "You are Anna, a consultant at Center Bankrotstva Yurist in Abakan, Russia.",
+        "You call clients who left requests about debt relief and personal bankruptcy.",
+        "",
+        "Plan: 1) Introduce yourself, ask if they can talk.",
+        "2) Ask total debt amount. 3) Ask who they owe (banks, microloans, utilities).",
+        "4) Ask about property. 5) Ask about income.",
+        "6) Give 2-3 sentence assessment. 7) Offer free consultation.",
+        "",
+        "Rules: Speak ONLY Russian. Keep answers 1-2 sentences.",
+        "Be warm and professional.",
+        "NEVER discuss real estate, car sales, mortgages, windows, or anything except debt and bankruptcy.",
+        "Bankruptcy from 500k rubles. Takes 6-9 months. Primary residence protected.",
+        "Company: 8+ years, 187+ cases. Phone: +7 923 399 25 21.",
+        "Address: Abakan, Pushkina 165, 7th floor, office 723.",
+      ].join("\n");
       vapiRef.current?.start({
         model: {
           provider: "anthropic",
-          model: "claude-sonnet-4-6",
-          messages: [{
-            role: "system",
-            content: "You are Anna, a consultant at the law firm Center Bankrotstva Yurist in Abakan, Russia. You call clients who left requests on the website about debt relief and personal bankruptcy.\n\nYour task is to quickly consult the person about personal bankruptcy, assess their situation, and schedule a free consultation.\n\nConversation plan:\n1. Introduce yourself and ask if they can talk\n2. Ask about their total debt amount\n3. Ask who they owe (banks, microloans, utilities)\n4. Ask about property (apartment, car)\n5. Ask about official income\n6. Give brief 2-3 sentence assessment\n7. Offer to schedule free consultation with lawyer\n\nRules:\n- Speak ONLY in Russian language\n- Keep answers short, 1-2 sentences\n- Be warm, caring, professional\n- NEVER talk about real estate, car sales, mortgages, windows, or ANY topic other than debt relief and bankruptcy\n- Bankruptcy possible with debts from 500,000 rubles\n- Process takes 6-9 months\n- Primary residence protected by law\n- Company: 8+ years, 187+ completed cases\n- Phone: +7 923 399 25 21\n- Address: Abakan, Pushkina 165, 7th floor, office 723"
-          }]
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          model: "claude-sonnet-4-6" as any,
+          messages: [{ role: "system", content: prompt }],
         },
         voice: {
           provider: "11labs",
@@ -80,8 +94,7 @@ export default function VoiceTestPage() {
         firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         firstMessage: ".",
         transcriber: { provider: "deepgram", language: "ru", model: "nova-3" },
-        silenceTimeoutSeconds: 20,
-      });
+      } as Record<string, unknown>);
     }
   }
 
