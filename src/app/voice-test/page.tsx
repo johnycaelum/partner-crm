@@ -13,7 +13,7 @@ export default function VoiceTestPage() {
 
   function initVapi() {
     if (vapiRef.current) return;
-    const v = new Vapi("b61eb458-8092-44ad-b3ff-15caf0079f7b");
+    const v = new Vapi("7b6be734-ebe7-40f0-8af4-66ee19b69403");
 
     v.on("call-start", () => {
       setIsActive(true);
