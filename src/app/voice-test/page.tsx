@@ -1,83 +1,134 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Vapi from "@vapi-ai/web";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-const PUBLIC_KEY = "b15e2e81-387b-4ed6-9b51-39cc42c7552c";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare global {
+  interface Window { SpeechRecognition: any; webkitSpeechRecognition: any; }
+}
+
+const ANTHROPIC_PROXY = "/api/chat";
 
 export default function VoiceTestPage() {
   const [status, setStatus] = useState("Nажмите для начала разговора");
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{role: string; text: string}[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const vapiRef = useRef<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const conversationRef = useRef<{role: string; content: string}[]>([
+    { role: "assistant", content: "Zdravstvuyte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Chem mogu pomoch?" }
+  ]);
 
-  function initVapi() {
-    if (vapiRef.current) return;
-    const v = new Vapi(PUBLIC_KEY);
+  const speak = useCallback(async (text: string) => {
+    setStatus("AI говорит...");
+    setStatusClass("active");
 
-    v.on("call-start", () => {
-      setIsActive(true);
-      setStatus("AI говорит...");
-      setStatusClass("active");
+    // Use browser TTS
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ru-RU";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.1;
+
+    // Find Russian female voice
+    const voices = speechSynthesis.getVoices();
+    const ruVoice = voices.find(v => v.lang.startsWith("ru") && v.name.toLowerCase().includes("female"))
+      || voices.find(v => v.lang.startsWith("ru"))
+      || voices[0];
+    if (ruVoice) utterance.voice = ruVoice;
+
+    return new Promise<void>((resolve) => {
+      utterance.onend = () => {
+        setStatus("Слушаю вас...");
+        resolve();
+      };
+      speechSynthesis.speak(utterance);
     });
+  }, []);
 
-    v.on("call-end", () => {
-      setIsActive(false);
-      setStatus("Разговор завершён");
-      setStatusClass("");
-    });
+  const processUserInput = useCallback(async (userText: string) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    setTranscript(prev => [...prev, { role: "user", text: userText }]);
 
-    v.on("speech-start", () => {
-      setStatus("AI говорит...");
-      setStatusClass("active");
-    });
+    conversationRef.current.push({ role: "user", content: userText });
 
-    v.on("speech-end", () => {
-      setStatus("Слушаю вас...");
-      setStatusClass("active");
-    });
+    try {
+      const res = await fetch(ANTHROPIC_PROXY, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: conversationRef.current }),
+      });
+      const data = await res.json();
+      const aiText = data.text || "Извините, не расслышала. Повторите пожалуйста.";
 
-    v.on("message", (msg: { type: string; transcriptType: string; role: string; transcript: string }) => {
-      if (msg.type === "transcript" && msg.transcriptType === "final") {
-        const role = msg.role === "assistant" ? "assistant" : "user";
-        setTranscript(prev => [...prev, { role, text: msg.transcript }]);
-      }
-    });
+      conversationRef.current.push({ role: "assistant", content: aiText });
+      setTranscript(prev => [...prev, { role: "assistant", text: aiText }]);
 
-    v.on("error", (err: unknown) => {
-      console.error("Vapi error:", err);
-      setStatus("Ошибка: попробуйте снова");
+      await speak(aiText);
+    } catch {
+      setTranscript(prev => [...prev, { role: "assistant", text: "Ошибка соединения" }]);
+    }
+    setIsProcessing(false);
+  }, [isProcessing, speak]);
+
+  function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setStatus("Браузер не поддерживает распознавание речи");
       setStatusClass("error");
-      setIsActive(false);
-    });
+      return;
+    }
 
-    vapiRef.current = v;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ru-RU";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event: any) => {
+      const last = event.results[event.results.length - 1];
+      if (last.isFinal) {
+        const text = last[0].transcript.trim();
+        if (text) processUserInput(text);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isActive) recognition.start();
+    };
+
+    recognition.onerror = () => {
+      setStatus("Ошибка распознавания");
+      setStatusClass("error");
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsActive(true);
+    setStatus("Слушаю вас...");
+    setStatusClass("active");
+
+    // Say first message
+    speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?");
+    setTranscript([{ role: "assistant", text: "Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?" }]);
   }
 
-  async function toggleCall() {
-    initVapi();
+  function stopListening() {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    speechSynthesis.cancel();
+    setIsActive(false);
+    setStatus("Разговор завершён");
+    setStatusClass("");
+  }
+
+  function toggleCall() {
     if (isActive) {
-      vapiRef.current?.stop();
+      stopListening();
     } else {
-      setStatus("Подключение...");
-      setStatusClass("");
-      try {
-        // Fetch web call token from server
-        const res = await fetch("/api/vapi-token");
-        const data = await res.json();
-        if (data.webCallUrl) {
-          // Use the web call URL
-          vapiRef.current?.start(undefined, { webCallUrl: data.webCallUrl });
-        } else {
-          // Fallback to assistant ID
-          vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
-        }
-      } catch {
-        vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
-      }
+      startListening();
     }
   }
 
@@ -87,62 +138,65 @@ export default function VoiceTestPage() {
     }
   }, [transcript]);
 
+  // Load voices
+  useEffect(() => { speechSynthesis.getVoices(); }, []);
+
   return (
-    <>
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.9)", borderRadius: 28, padding: "48px 36px", maxWidth: 420, width: "100%", textAlign: "center", boxShadow: "0 8px 32px rgba(59,130,246,0.1)" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "linear-gradient(160deg, #dbeafe 0%, #f0f9ff 40%, #ede9fe 100%)" }}>
+      <div style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.9)", borderRadius: 28, padding: "48px 36px", maxWidth: 420, width: "100%", textAlign: "center", boxShadow: "0 8px 32px rgba(59,130,246,0.1)" }}>
 
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Голосовая консультация</h1>
-          <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: 24 }}>
-            Нажмите кнопку и задайте вопрос о банкротстве. AI-помощник ответит голосом.
-          </p>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Голосовая консультация</h1>
+        <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: 24 }}>
+          Нажмите кнопку и задайте вопрос о банкротстве. AI-помощник ответит голосом.
+        </p>
 
-          <div style={{ fontSize: "0.85rem", minHeight: 24, marginBottom: 16, color: statusClass === "active" ? "#16a34a" : statusClass === "error" ? "#dc2626" : "#94a3b8" }}>
-            {status}
-          </div>
-
-          <button
-            onClick={toggleCall}
-            style={{
-              width: 120, height: 120, borderRadius: "50%", border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px",
-              background: isActive ? "linear-gradient(135deg, #ef4444, #f97316)" : "linear-gradient(135deg, #3b82f6, #818cf8)",
-              boxShadow: isActive ? "0 8px 32px rgba(239,68,68,0.4)" : "0 8px 32px rgba(59,130,246,0.4)",
-              transition: "all 0.3s ease",
-            }}
-          >
-            {isActive ? (
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
-            ) : (
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-              </svg>
-            )}
-          </button>
-
-          {transcript.length > 0 && (
-            <div ref={transcriptRef} style={{ maxHeight: 250, overflowY: "auto", textAlign: "left", padding: "12px 16px", background: "rgba(255,255,255,0.8)", borderRadius: 16, border: "1px solid rgba(226,232,240,0.6)", marginTop: 16 }}>
-              {transcript.map((t, i) => (
-                <p key={i} style={{ fontSize: "0.82rem", lineHeight: 1.5, margin: "4px 0", color: t.role === "user" ? "#3b82f6" : "#475569" }}>
-                  <strong style={{ color: t.role === "user" ? "#2563eb" : "#64748b" }}>
-                    {t.role === "user" ? "Вы" : "AI"}:
-                  </strong>{" "}{t.text}
-                </p>
-              ))}
-            </div>
-          )}
-
-          <p style={{ color: "#94a3b8", fontSize: "0.75rem", marginTop: 20 }}>
-            Партнёрская программа от{" "}
-            <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}>
-              Центра Банкротства Юрист
-            </a>
-          </p>
+        <div style={{ fontSize: "0.85rem", minHeight: 24, marginBottom: 16, color: statusClass === "active" ? "#16a34a" : statusClass === "error" ? "#dc2626" : "#94a3b8" }}>
+          {status}
         </div>
+
+        <button
+          onClick={toggleCall}
+          style={{
+            width: 120, height: 120, borderRadius: "50%", border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px",
+            background: isActive ? "linear-gradient(135deg, #ef4444, #f97316)" : "linear-gradient(135deg, #3b82f6, #818cf8)",
+            boxShadow: isActive ? "0 8px 32px rgba(239,68,68,0.4)" : "0 8px 32px rgba(59,130,246,0.4)",
+            transition: "all 0.3s ease",
+          }}
+        >
+          {isActive ? (
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+            </svg>
+          ) : (
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+            </svg>
+          )}
+        </button>
+
+        {transcript.length > 0 && (
+          <div ref={transcriptRef} style={{ maxHeight: 250, overflowY: "auto", textAlign: "left", padding: "12px 16px", background: "rgba(255,255,255,0.8)", borderRadius: 16, border: "1px solid rgba(226,232,240,0.6)", marginTop: 16 }}>
+            {transcript.map((t, i) => (
+              <p key={i} style={{ fontSize: "0.82rem", lineHeight: 1.5, margin: "4px 0", color: t.role === "user" ? "#3b82f6" : "#475569" }}>
+                <strong style={{ color: t.role === "user" ? "#2563eb" : "#64748b" }}>
+                  {t.role === "user" ? "Вы" : "AI"}:
+                </strong>{" "}{t.text}
+              </p>
+            ))}
+          </div>
+        )}
+
+        <audio ref={audioRef} />
+
+        <p style={{ color: "#94a3b8", fontSize: "0.75rem", marginTop: 20 }}>
+          Партнёрская программа от{" "}
+          <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}>
+            Центра Банкротства Юрист
+          </a>
+        </p>
       </div>
-    </>
+    </div>
   );
 }
