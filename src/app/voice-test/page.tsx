@@ -61,40 +61,7 @@ export default function VoiceTestPage() {
     } else {
       setStatus("Подключение...");
       setStatusClass("");
-      const prompt = [
-        "You are Anna, a consultant at Center Bankrotstva Yurist in Abakan, Russia.",
-        "You call clients who left requests about debt relief and personal bankruptcy.",
-        "",
-        "Plan: 1) Introduce yourself, ask if they can talk.",
-        "2) Ask total debt amount. 3) Ask who they owe (banks, microloans, utilities).",
-        "4) Ask about property. 5) Ask about income.",
-        "6) Give 2-3 sentence assessment. 7) Offer free consultation.",
-        "",
-        "Rules: Speak ONLY Russian. Keep answers 1-2 sentences.",
-        "Be warm and professional.",
-        "NEVER discuss real estate, car sales, mortgages, windows, or anything except debt and bankruptcy.",
-        "Bankruptcy from 500k rubles. Takes 6-9 months. Primary residence protected.",
-        "Company: 8+ years, 187+ cases. Phone: +7 923 399 25 21.",
-        "Address: Abakan, Pushkina 165, 7th floor, office 723.",
-      ].join("\n");
-      vapiRef.current?.start({
-        model: {
-          provider: "anthropic",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          model: "claude-sonnet-4-6" as any,
-          messages: [{ role: "system", content: prompt }],
-        },
-        voice: {
-          provider: "11labs",
-          voiceId: "7G0NvIkWRnU0Dqjgz13p",
-          model: "eleven_turbo_v2_5",
-          stability: 0.65,
-          similarityBoost: 0.9,
-        },
-        firstMessageMode: "assistant-speaks-first-with-model-generated-message",
-        firstMessage: ".",
-        transcriber: { provider: "deepgram", language: "ru", model: "nova-3" },
-      } as Record<string, unknown>);
+      vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
     }
   }
 
