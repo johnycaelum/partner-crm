@@ -26,26 +26,42 @@ export default function VoiceTestPage() {
     setStatus("AI говорит...");
     setStatusClass("active");
 
-    // Use browser TTS
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ru-RU";
-    utterance.rate = 1.0;
-    utterance.pitch = 1.1;
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
 
-    // Find Russian female voice
-    const voices = speechSynthesis.getVoices();
-    const ruVoice = voices.find(v => v.lang.startsWith("ru") && v.name.toLowerCase().includes("female"))
-      || voices.find(v => v.lang.startsWith("ru"))
-      || voices[0];
-    if (ruVoice) utterance.voice = ruVoice;
+      if (!res.ok) throw new Error("TTS failed");
 
-    return new Promise<void>((resolve) => {
-      utterance.onend = () => {
-        setStatus("Слушаю вас...");
-        resolve();
-      };
-      speechSynthesis.speak(utterance);
-    });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      return new Promise<void>((resolve) => {
+        const audio = new Audio(url);
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          setStatus("Слушаю вас...");
+          resolve();
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          setStatus("Слушаю вас...");
+          resolve();
+        };
+        audioRef.current = audio;
+        audio.play();
+      });
+    } catch {
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ru-RU";
+      return new Promise<void>((resolve) => {
+        utterance.onend = () => { setStatus("Слушаю вас..."); resolve(); };
+        speechSynthesis.speak(utterance);
+      });
+    }
   }, []);
 
   const processUserInput = useCallback(async (userText: string) => {
@@ -119,6 +135,7 @@ export default function VoiceTestPage() {
     recognitionRef.current?.stop();
     recognitionRef.current = null;
     speechSynthesis.cancel();
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     setIsActive(false);
     setStatus("Разговор завершён");
     setStatusClass("");
