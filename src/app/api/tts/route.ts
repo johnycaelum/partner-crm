@@ -6,28 +6,31 @@ const VOICE_ID = "7G0NvIkWRnU0Dqjgz13p";
 export async function POST(req: NextRequest) {
   const { text } = await req.json();
 
-  const res = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_turbo_v2_5",
-        voice_settings: {
-          stability: 0.65,
-          similarity_boost: 0.9,
-          speed: 1.0,
-        },
-      }),
-    }
-  );
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
+  const body = JSON.stringify({
+    text,
+    model_id: "eleven_multilingual_v2",
+    voice_settings: {
+      stability: 0.65,
+      similarity_boost: 0.9,
+    },
+  });
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "xi-api-key": ELEVENLABS_API_KEY,
+      "Content-Type": "application/json",
+      "Accept": "audio/mpeg",
+    },
+    body,
+    redirect: "follow",
+  });
 
   if (!res.ok) {
-    return NextResponse.json({ error: "TTS failed" }, { status: 500 });
+    const err = await res.text().catch(() => "unknown");
+    console.error("ElevenLabs error:", res.status, err);
+    return NextResponse.json({ error: "TTS failed", status: res.status, detail: err }, { status: 500 });
   }
 
   const audioBuffer = await res.arrayBuffer();
