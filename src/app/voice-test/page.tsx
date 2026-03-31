@@ -3,21 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import Vapi from "@vapi-ai/web";
 
+const PRIVATE_KEY = "3bd1fd8a-a97c-4757-aea1-32cde5716d40";
+const ASSISTANT_ID = "cc273cf4-80f8-46c4-a04c-b3c9240be51c";
+
 export default function VoiceTestPage() {
-  const [status, setStatus] = useState("Нажмите для начала разговора");
+  const [status, setStatus] = useState("Nажмите для начала разговора");
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
-  const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
+  const [transcript, setTranscript] = useState<{role: string; text: string}[]>([]);
   const vapiRef = useRef<Vapi | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   function initVapi() {
     if (vapiRef.current) return;
-    const v = new Vapi("b15e2e81-387b-4ed6-9b51-39cc42c7552c");
+    const v = new Vapi(PRIVATE_KEY);
 
     v.on("call-start", () => {
       setIsActive(true);
-      setStatus("Соединение установлено — говорите!");
+      setStatus("AI говорит...");
       setStatusClass("active");
     });
 
@@ -61,7 +64,7 @@ export default function VoiceTestPage() {
     } else {
       setStatus("Подключение...");
       setStatusClass("");
-      vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
+      vapiRef.current?.start(ASSISTANT_ID);
     }
   }
 
@@ -101,32 +104,30 @@ export default function VoiceTestPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
               </svg>
             ) : (
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
               </svg>
             )}
           </button>
 
           {transcript.length > 0 && (
-            <div ref={transcriptRef} style={{
-              background: "rgba(241,245,249,0.7)", border: "1px solid rgba(203,213,225,0.6)",
-              borderRadius: 16, padding: 16, marginTop: 20, textAlign: "left",
-              maxHeight: 200, overflowY: "auto", fontSize: "0.82rem", color: "#334155", lineHeight: 1.6
-            }}>
+            <div ref={transcriptRef} style={{ maxHeight: 250, overflowY: "auto", textAlign: "left", padding: "12px 16px", background: "rgba(255,255,255,0.8)", borderRadius: 16, border: "1px solid rgba(226,232,240,0.6)", marginTop: 16 }}>
               {transcript.map((t, i) => (
-                <div key={i}>
-                  <span style={{ color: t.role === "assistant" ? "#3b82f6" : "#8b5cf6", fontWeight: 600 }}>
-                    {t.role === "assistant" ? "AI" : "Вы"}:
-                  </span>{" "}
-                  {t.text}
-                </div>
+                <p key={i} style={{ fontSize: "0.82rem", lineHeight: 1.5, margin: "4px 0", color: t.role === "user" ? "#3b82f6" : "#475569" }}>
+                  <strong style={{ color: t.role === "user" ? "#2563eb" : "#64748b" }}>
+                    {t.role === "user" ? "Вы" : "AI"}:
+                  </strong>{" "}{t.text}
+                </p>
               ))}
             </div>
           )}
 
-          <div style={{ marginTop: 24, fontSize: "0.75rem", color: "#94a3b8" }}>
-            Партнёрская программа от <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>Центра Банкротства Юрист</a>
-          </div>
+          <p style={{ color: "#94a3b8", fontSize: "0.75rem", marginTop: 20 }}>
+            Партнёрская программа от{" "}
+            <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}>
+              Центра Банкротства Юрист
+            </a>
+          </p>
         </div>
       </div>
     </>
