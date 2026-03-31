@@ -3,20 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import Vapi from "@vapi-ai/web";
 
-const PRIVATE_KEY = "3bd1fd8a-a97c-4757-aea1-32cde5716d40";
-const ASSISTANT_ID = "cc273cf4-80f8-46c4-a04c-b3c9240be51c";
+const PUBLIC_KEY = "b15e2e81-387b-4ed6-9b51-39cc42c7552c";
 
 export default function VoiceTestPage() {
   const [status, setStatus] = useState("Nажмите для начала разговора");
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{role: string; text: string}[]>([]);
-  const vapiRef = useRef<Vapi | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vapiRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   function initVapi() {
     if (vapiRef.current) return;
-    const v = new Vapi(PRIVATE_KEY);
+    const v = new Vapi(PUBLIC_KEY);
 
     v.on("call-start", () => {
       setIsActive(true);
@@ -40,14 +40,14 @@ export default function VoiceTestPage() {
       setStatusClass("active");
     });
 
-    v.on("message", (msg) => {
+    v.on("message", (msg: { type: string; transcriptType: string; role: string; transcript: string }) => {
       if (msg.type === "transcript" && msg.transcriptType === "final") {
         const role = msg.role === "assistant" ? "assistant" : "user";
         setTranscript(prev => [...prev, { role, text: msg.transcript }]);
       }
     });
 
-    v.on("error", (err) => {
+    v.on("error", (err: unknown) => {
       console.error("Vapi error:", err);
       setStatus("Ошибка: попробуйте снова");
       setStatusClass("error");
@@ -57,14 +57,27 @@ export default function VoiceTestPage() {
     vapiRef.current = v;
   }
 
-  function toggleCall() {
+  async function toggleCall() {
     initVapi();
     if (isActive) {
       vapiRef.current?.stop();
     } else {
       setStatus("Подключение...");
       setStatusClass("");
-      vapiRef.current?.start(ASSISTANT_ID);
+      try {
+        // Fetch web call token from server
+        const res = await fetch("/api/vapi-token");
+        const data = await res.json();
+        if (data.webCallUrl) {
+          // Use the web call URL
+          vapiRef.current?.start(undefined, { webCallUrl: data.webCallUrl });
+        } else {
+          // Fallback to assistant ID
+          vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
+        }
+      } catch {
+        vapiRef.current?.start("cc273cf4-80f8-46c4-a04c-b3c9240be51c");
+      }
     }
   }
 
