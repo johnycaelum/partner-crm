@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     // Use edge-tts CLI (Python package) on server
     await new Promise<void>((resolve, reject) => {
       exec(
-        `edge-tts --voice ru-RU-SvetlanaNeural --text "${text.replace(/"/g, '\\"')}" --write-media ${outFile}`,
+        `/usr/local/bin/edge-tts --voice ru-RU-SvetlanaNeural --text "${text.replace(/"/g, '\\"').replace(/\n/g, ' ')}" --write-media ${outFile}`,
         { timeout: 15000 },
         (err) => (err ? reject(err) : resolve())
       );
