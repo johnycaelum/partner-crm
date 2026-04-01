@@ -21,7 +21,7 @@ export default function VoiceTestPage() {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const conversationRef = useRef<{role: string; content: string}[]>([
-    { role: "assistant", content: "Zdravstvujte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Vy ostavlyali zayavku na nashem sajte. Chem mogu pomoch?" }
+    { role: "assistant", content: "Zdravstvujte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Vy ostavlyali zayavku po voprosu spisaniya dolgov. Kakaya u vas primerno obshchaya summa zadolzhennosti?" }
   ]);
 
   const speak = useCallback(async (text: string) => {
@@ -134,10 +134,10 @@ export default function VoiceTestPage() {
     setStatusClass("active");
 
     // Say first message, then start listening
-    speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?").then(() => {
+    speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте по вопросу списания долгов. Подскажите, какая у вас примерно общая сумма задолженности?").then(() => {
       try { recognition.start(); } catch { /* already started */ }
     });
-    setTranscript([{ role: "assistant", text: "Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?" }]);
+    setTranscript([{ role: "assistant", text: "Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте по вопросу списания долгов. Подскажите, какая у вас примерно общая сумма задолженности?" }]);
   }
 
   function stopListening() {
