@@ -83,7 +83,11 @@ export default function VoiceTestPage() {
       conversationRef.current.push({ role: "assistant", content: aiText });
       setTranscript(prev => [...prev, { role: "assistant", text: aiText }]);
 
+      // Pause recognition while AI speaks to prevent echo
+      recognitionRef.current?.stop();
       await speak(aiText);
+      // Resume recognition after speaking
+      try { recognitionRef.current?.start(); } catch { /* already started */ }
     } catch {
       setTranscript(prev => [...prev, { role: "assistant", text: "Ошибка соединения" }]);
     }
@@ -121,13 +125,14 @@ export default function VoiceTestPage() {
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
     setIsActive(true);
-    setStatus("Слушаю вас...");
+    setStatus("AI говорит...");
     setStatusClass("active");
 
-    // Say first message
-    speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?");
+    // Say first message, then start listening
+    speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?").then(() => {
+      try { recognition.start(); } catch { /* already started */ }
+    });
     setTranscript([{ role: "assistant", text: "Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте. Чем могу помочь?" }]);
   }
 
