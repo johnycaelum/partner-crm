@@ -1,26 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exec } from "child_process";
-import { readFile, unlink } from "fs/promises";
-import { join } from "path";
+
+const ELEVENLABS_API_KEY = "sk_c5d605819d2b4563a7b04e2b1e9c3761fb3a46d6eb869ae9";
+const VOICE_ID = "7G0NvIkWRnU0Dqjgz13p";
+const PROXY_URL = "https://api-proxy.nineo1639.workers.dev";
 
 export async function POST(req: NextRequest) {
   const { text } = await req.json();
-  const outFile = join("/tmp", `tts-${Date.now()}.mp3`);
 
   try {
-    // Use edge-tts CLI (Python package) on server
-    await new Promise<void>((resolve, reject) => {
-      exec(
-        `/usr/local/bin/edge-tts --voice ru-RU-SvetlanaNeural --text "${text.replace(/"/g, '\\"').replace(/\n/g, ' ')}" --write-media ${outFile}`,
-        { timeout: 15000 },
-        (err) => (err ? reject(err) : resolve())
-      );
+    const res = await fetch(`${PROXY_URL}/tts/${VOICE_ID}`, {
+      method: "POST",
+      headers: {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: {
+          stability: 0.65,
+          similarity_boost: 0.9,
+        },
+      }),
     });
 
-    const audio = await readFile(outFile);
-    await unlink(outFile).catch(() => {});
+    if (!res.ok) {
+      const err = await res.text().catch(() => "unknown");
+      console.error("TTS error:", res.status, err);
+      return NextResponse.json({ error: "TTS failed" }, { status: 500 });
+    }
 
-    return new NextResponse(audio, {
+    const audioBuffer = await res.arrayBuffer();
+    return new NextResponse(audioBuffer, {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "no-cache",
