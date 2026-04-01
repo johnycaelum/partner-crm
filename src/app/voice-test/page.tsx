@@ -15,11 +15,12 @@ export default function VoiceTestPage() {
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{role: string; text: string}[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const processingRef = useRef(false);
   const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const conversationRef = useRef<{role: string; content: string}[]>([
-    { role: "assistant", content: "Zdravstvuyte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Chem mogu pomoch?" }
+    { role: "assistant", content: "Zdravstvujte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Vy ostavlyali zayavku na nashem sajte. Chem mogu pomoch?" }
   ]);
 
   const speak = useCallback(async (text: string) => {
@@ -65,7 +66,8 @@ export default function VoiceTestPage() {
   }, []);
 
   const processUserInput = useCallback(async (userText: string) => {
-    if (isProcessing) return;
+    if (processingRef.current) return;
+    processingRef.current = true;
     setIsProcessing(true);
     setTranscript(prev => [...prev, { role: "user", text: userText }]);
 
@@ -91,8 +93,9 @@ export default function VoiceTestPage() {
     } catch {
       setTranscript(prev => [...prev, { role: "assistant", text: "Ошибка соединения" }]);
     }
+    processingRef.current = false;
     setIsProcessing(false);
-  }, [isProcessing, speak]);
+  }, [speak]);
 
   function startListening() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
