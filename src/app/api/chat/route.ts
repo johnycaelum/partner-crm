@@ -20,7 +20,7 @@ const SYSTEM_PROMPT = [
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
 
-  const res = await fetch("https://api-proxy.nineo1639.workers.dev/anthropic/messages", {
+  const res = await fetch("http://148.253.209.114/anthropic/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
