@@ -14,6 +14,7 @@ export default function VoiceTestPage() {
   const [statusClass, setStatusClass] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState<{role: string; text: string}[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
   const recognitionRef = useRef<any>(null);
