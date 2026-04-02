@@ -9,6 +9,74 @@ declare global {
 
 const ANTHROPIC_PROXY = "/api/chat";
 
+// Office ambient noise generator using WebAudio API
+function createOfficeAmbience(audioCtx: AudioContext): { gain: GainNode; stop: () => void } {
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.04; // Very subtle
+
+  // Brownian noise for general room tone
+  const bufferSize = 2 * audioCtx.sampleRate;
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    output[i] = (lastOut + 0.02 * white) / 1.02;
+    lastOut = output[i];
+    output[i] *= 3.5;
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = noiseBuffer;
+  noise.loop = true;
+
+  // Low-pass filter — muffled room ambience
+  const lpf = audioCtx.createBiquadFilter();
+  lpf.type = "lowpass";
+  lpf.frequency.value = 400;
+
+  // Subtle keyboard/typing clicks via filtered noise bursts
+  const clickGain = audioCtx.createGain();
+  clickGain.gain.value = 0;
+  const clickFilter = audioCtx.createBiquadFilter();
+  clickFilter.type = "bandpass";
+  clickFilter.frequency.value = 2000;
+  clickFilter.Q.value = 5;
+
+  const clickNoise = audioCtx.createBufferSource();
+  const clickBuf = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const clickData = clickBuf.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) clickData[i] = Math.random() * 2 - 1;
+  clickNoise.buffer = clickBuf;
+  clickNoise.loop = true;
+  clickNoise.connect(clickFilter);
+  clickFilter.connect(clickGain);
+  clickGain.connect(masterGain);
+  clickNoise.start();
+
+  // Random typing clicks
+  const clickInterval = setInterval(() => {
+    if (Math.random() > 0.6) {
+      const now = audioCtx.currentTime;
+      clickGain.gain.setValueAtTime(0.15, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03 + Math.random() * 0.02);
+    }
+  }, 100 + Math.random() * 150);
+
+  noise.connect(lpf);
+  lpf.connect(masterGain);
+  masterGain.connect(audioCtx.destination);
+  noise.start();
+
+  return {
+    gain: masterGain,
+    stop: () => {
+      clearInterval(clickInterval);
+      noise.stop();
+      clickNoise.stop();
+    },
+  };
+}
+
 export default function VoiceTestPage() {
   const [status, setStatus] = useState("Nажмите для начала разговора");
   const [statusClass, setStatusClass] = useState("");
@@ -20,6 +88,8 @@ export default function VoiceTestPage() {
   const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ambienceRef = useRef<{ gain: GainNode; stop: () => void } | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const conversationRef = useRef<{role: string; content: string}[]>([
     { role: "assistant", content: "Zdravstvujte! Menya zovut Anna, ya iz kompanii Centr Bankrotstva Yurist. Vy ostavlyali zayavku po voprosu spisaniya dolgov. Kakaya u vas primerno obshchaya summa zadolzhennosti?" }
   ]);
@@ -73,6 +143,8 @@ export default function VoiceTestPage() {
     setTranscript(prev => [...prev, { role: "user", text: userText }]);
 
     conversationRef.current.push({ role: "user", content: userText });
+    setStatus("Анна думает...");
+    setStatusClass("active");
 
     try {
       const res = await fetch(ANTHROPIC_PROXY, {
@@ -133,6 +205,13 @@ export default function VoiceTestPage() {
     setStatus("AI говорит...");
     setStatusClass("active");
 
+    // Start office ambience
+    try {
+      const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+      ambienceRef.current = createOfficeAmbience(ctx);
+    } catch { /* no audio context support */ }
+
     // Say first message, then start listening
     speak("Здравствуйте! Меня зовут Анна, я из компании Центр Банкротства Юрист. Вы оставляли заявку на нашем сайте по вопросу списания долгов. Подскажите, какая у вас примерно общая сумма задолженности?").then(() => {
       try { recognition.start(); } catch { /* already started */ }
@@ -145,6 +224,9 @@ export default function VoiceTestPage() {
     recognitionRef.current = null;
     speechSynthesis.cancel();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    // Stop office ambience
+    if (ambienceRef.current) { ambienceRef.current.stop(); ambienceRef.current = null; }
+    if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null; }
     setIsActive(false);
     setStatus("Разговор завершён");
     setStatusClass("");
