@@ -314,3 +314,36 @@ a[style*="gradient"]:hover {
 nav a:hover {
   transform: translateY(-1px);
 }
+
+/* === MOBILE RESPONSIVE === */
+@media (max-width: 640px) {
+  /* Navbar compact */
+  nav > div { padding: 0 12px !important; height: 56px !important; }
+  nav span { font-size: 0.8rem !important; }
+  nav a[href="/login"] { padding: 6px 10px !important; font-size: 0.75rem !important; }
+  nav a[href="/register"] { padding: 7px 14px !important; font-size: 0.75rem !important; }
+
+  /* Hero section */
+  section[style*="padding-top:140px"] { padding-top: 80px !important; padding-bottom: 40px !important; }
+  section h1 { font-size: 1.8rem !important; }
+  section p { font-size: 0.9rem !important; }
+
+  /* Buttons */
+  section a[href="/register"] { padding: 14px 28px !important; font-size: 0.95rem !important; }
+
+  /* How it works cards */
+  div[style*="grid-template-columns"] { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+
+  /* Pricing cards */
+  div[style*="grid-template-columns:repeat(auto-fit, minmax(250px"] { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+  /* Sections padding */
+  section[style*="padding:80px"] { padding: 40px 16px !important; }
+  section[style*="padding:100px"] { padding: 48px 16px !important; }
+
+  /* CTA section */
+  section div[style*="padding:64px 40px"] { padding: 40px 20px !important; }
+
+  /* Footer */
+  footer { padding: 24px 16px 16px !important; }
+}
