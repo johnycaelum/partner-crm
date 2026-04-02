@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
         text,
         model_id: "eleven_multilingual_v2",
         voice_settings: {
-          stability: 0.55,
-          similarity_boost: 0.9,
-          style: 0.2,
-          use_speaker_boost: true,
+          stability: 0.72,
+          similarity_boost: 0.78,
+          style: 0,
+          use_speaker_boost: false,
         },
       }),
     });
