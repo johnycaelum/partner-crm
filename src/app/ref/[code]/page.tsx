@@ -261,7 +261,7 @@ export default function ReferralPage() {
                         ...(m.role === "user"
                           ? { background: "linear-gradient(135deg, #3b82f6, #818cf8)", color: "white", borderBottomRightRadius: 4 }
                           : { background: "white", color: "#1e293b", border: "1px solid #e2e8f0", borderBottomLeftRadius: 4 }),
-                      }} dangerouslySetInnerHTML={{ __html: m.text.replace(/\n/g, "<br>") }} />
+                      }} dangerouslySetInnerHTML={{ __html: m.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<em>$1</em>").replace(/\n/g, "<br>") }} />
                     </div>
                   ))}
                   {chatSending && (
