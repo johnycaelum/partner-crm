@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const { text } = await req.json();
 
   try {
-    const res = await fetch(`${PROXY_URL}/tts/${VOICE_ID}`, {
+    const res = await fetch(`${PROXY_URL}/tts/${VOICE_ID}?optimize_streaming_latency=4&output_format=mp3_22050_32`, {
       method: "POST",
       headers: {
         "xi-api-key": ELEVENLABS_API_KEY,
@@ -33,11 +33,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "TTS failed" }, { status: 500 });
     }
 
-    const audioBuffer = await res.arrayBuffer();
-    return new NextResponse(audioBuffer, {
+    // Stream audio directly instead of buffering
+    return new NextResponse(res.body, {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "no-cache",
+        "Transfer-Encoding": "chunked",
       },
     });
   } catch (err) {

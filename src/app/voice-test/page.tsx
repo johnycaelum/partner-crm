@@ -107,11 +107,39 @@ export default function VoiceTestPage() {
 
       if (!res.ok) throw new Error("TTS failed");
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      // Stream audio — start playing as data arrives
+      const mediaSource = new MediaSource();
+      const url = URL.createObjectURL(mediaSource);
+      const audio = new Audio(url);
+      audioRef.current = audio;
 
       return new Promise<void>((resolve) => {
-        const audio = new Audio(url);
+        mediaSource.addEventListener("sourceopen", async () => {
+          try {
+            const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+            const reader = res.body!.getReader();
+
+            const pump = async (): Promise<void> => {
+              const { done, value } = await reader.read();
+              if (done) {
+                if (mediaSource.readyState === "open") mediaSource.endOfStream();
+                return;
+              }
+              if (sourceBuffer.updating) {
+                await new Promise<void>(r => sourceBuffer.addEventListener("updateend", () => r(), { once: true }));
+              }
+              sourceBuffer.appendBuffer(value);
+              await new Promise<void>(r => sourceBuffer.addEventListener("updateend", () => r(), { once: true }));
+              return pump();
+            };
+
+            pump();
+            audio.play();
+          } catch {
+            if (mediaSource.readyState === "open") mediaSource.endOfStream();
+          }
+        }, { once: true });
+
         audio.onended = () => {
           URL.revokeObjectURL(url);
           setStatus("Слушаю вас...");
@@ -122,8 +150,6 @@ export default function VoiceTestPage() {
           setStatus("Слушаю вас...");
           resolve();
         };
-        audioRef.current = audio;
-        audio.play();
       });
     } catch {
       // Fallback to browser TTS

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 150,
       system: SYSTEM_PROMPT,
       messages: messages.map((m: { role: string; content: string }) => ({
@@ -53,7 +53,37 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await res.json();
-  const text = data.content?.[0]?.text || "Izvините, повторите пожалуйста.";
+  let text = data.content?.[0]?.text || "Извините, повторите пожалуйста.";
+
+  // Force feminine gender forms
+  const genderFixes: [RegExp, string][] = [
+    [/\bя понял\b/gi, "я поняла"],
+    [/\bпонял,/gi, "поняла,"],
+    [/\bПонял,/g, "Поняла,"],
+    [/\bПонял\./g, "Поняла."],
+    [/\bя рад\b/gi, "я рада"],
+    [/\bя готов\b/gi, "я готова"],
+    [/\bя хотел бы/gi, "я хотела бы"],
+    [/\bя уточнил\b/gi, "я уточнила"],
+    [/\bя записал\b/gi, "я записала"],
+    [/\bя позвонил\b/gi, "я позвонила"],
+    [/\bя сказал\b/gi, "я сказала"],
+    [/\bя помог\b/gi, "я помогла"],
+    [/\bя объяснил\b/gi, "я объяснила"],
+    [/\bя спросил\b/gi, "я спросила"],
+    [/\bя предложил\b/gi, "я предложила"],
+    [/\bя рассказал\b/gi, "я рассказала"],
+    [/\bя услышал\b/gi, "я услышала"],
+    [/\bя принял\b/gi, "я приняла"],
+    [/\bя получил\b/gi, "я получила"],
+    [/\bя передал\b/gi, "я передала"],
+  ];
+  for (const [pattern, replacement] of genderFixes) {
+    text = text.replace(pattern, replacement);
+  }
+
+  // Remove exclamation marks to prevent TTS from shouting
+  text = text.replace(/!/g, ".");
 
   return NextResponse.json({ text });
 }
