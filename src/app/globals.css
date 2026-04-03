@@ -315,6 +315,11 @@ nav a:hover {
   transform: translateY(-1px);
 }
 
+/* Hide mobile tab bar on desktop */
+@media (min-width: 768px) {
+  .mobile-tab-bar { display: none !important; }
+}
+
 /* === MOBILE RESPONSIVE === */
 @media (max-width: 640px) {
   /* Navbar compact */
