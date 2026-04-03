@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div style={{ minHeight: "100vh" }} className="pb-[72px] md:pb-0">
       {/* Desktop top nav */}
       <nav
-        className={`sticky top-0 z-50 transition-all duration-300 hidden md:block ${scrolled ? "shadow-lg shadow-blue-100/50" : ""}`}
+        className={`desktop-nav sticky top-0 z-50 transition-all duration-300 ${scrolled ? "shadow-lg shadow-blue-100/50" : ""}`}
         style={{
           background: "rgba(255,255,255,0.75)",
           backdropFilter: "blur(24px)",
@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Mobile top bar - minimal */}
-      <div className="md:hidden sticky top-0 z-50" style={{
+      <div className="mobile-top-bar sticky top-0 z-50" style={{
         background: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(226,232,240,0.5)",

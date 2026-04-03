@@ -315,9 +315,15 @@ nav a:hover {
   transform: translateY(-1px);
 }
 
-/* Hide mobile tab bar on desktop */
+/* Hide mobile elements on desktop */
 @media (min-width: 768px) {
   .mobile-tab-bar { display: none !important; }
+  .mobile-top-bar { display: none !important; }
+}
+
+/* Hide desktop nav on mobile */
+@media (max-width: 767px) {
+  .desktop-nav { display: none !important; }
 }
 
 /* === MOBILE RESPONSIVE === */
