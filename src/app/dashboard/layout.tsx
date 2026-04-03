@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard" className="flex items-center gap-2 mr-2">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md"
                   style={{ background: "linear-gradient(135deg, #3b82f6, #60a5fa)" }}>
-                  <span style={{ color: "white", fontSize: "14px", fontWeight: 800 }}>P</span>
+                  <span style={{ color: "white", fontSize: "14px", fontWeight: 800 }}>₽</span>
                 </div>
                 <span className="text-base font-bold text-slate-800">CBU Partner</span>
               </Link>
@@ -108,7 +108,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }}>
         <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
           <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg, #3b82f6, #818cf8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "white", fontSize: 13, fontWeight: 800 }}>P</span>
+            <span style={{ color: "white", fontSize: 13, fontWeight: 800 }}>₽</span>
           </div>
           <span style={{ fontWeight: 800, fontSize: 14, color: "#0f172a" }}>CBU Partner</span>
         </Link>
