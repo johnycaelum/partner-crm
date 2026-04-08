@@ -17,6 +17,18 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState<"email" | "code" | "not-found">("email");
   const [email, setEmail] = useState("");
+  const [checking, setChecking] = useState(true);
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(data => {
+        if (data.type === "partner") router.replace("/dashboard");
+        else setChecking(false);
+      })
+      .catch(() => setChecking(false));
+  }, [router]);
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -65,6 +77,8 @@ function LoginForm() {
     }
     router.push("/dashboard");
   }
+
+  if (checking) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>Загрузка...</div>;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>

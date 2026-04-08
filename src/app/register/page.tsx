@@ -25,6 +25,18 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [devCode, setDevCode] = useState("");
+  const [checking, setChecking] = useState(true);
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(data => {
+        if (data.type === "partner") router.replace("/dashboard");
+        else setChecking(false);
+      })
+      .catch(() => setChecking(false));
+  }, [router]);
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -72,6 +84,8 @@ function RegisterForm() {
   const inputStyle: React.CSSProperties = { width: "100%", padding: "10px 14px", background: "rgba(241,245,249,0.7)", border: "1px solid rgba(203,213,225,0.6)", borderRadius: 12, fontSize: "0.875rem", color: "#334155", outline: "none", marginBottom: 16, boxSizing: "border-box" };
   const labelStyle: React.CSSProperties = { display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: 6 };
   const btnStyle: React.CSSProperties = { width: "100%", padding: "12px", background: "linear-gradient(135deg, #3b82f6, #818cf8)", color: "white", border: "none", borderRadius: 12, fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(59,130,246,0.3)" };
+
+  if (checking) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>Загрузка...</div>;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
