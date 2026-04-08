@@ -70,9 +70,6 @@ function LoginForm() {
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
       <div className="glass anim-fade-up" style={{ width: "100%", maxWidth: "400px", borderRadius: "24px", padding: "40px 32px" }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: "linear-gradient(135deg, #3b82f6, #818cf8)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
-            <span style={{ color: "white", fontSize: "20px", fontWeight: 800 }}>₽</span>
-          </div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>Вход в кабинет</h1>
           <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: 0 }}>Партнёрская программа от <a href="https://cbucompany.ru" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>Центра Банкротства Юрист</a></p>
         </div>
