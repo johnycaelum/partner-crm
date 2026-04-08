@@ -41,11 +41,13 @@ export async function POST(req: NextRequest) {
   const token = await signToken({ id: partner.id, phone: partner.phone, type: "partner" });
 
   const response = NextResponse.json({ success: true, partner: { id: partner.id, name: partner.name } });
+  const thirtyDays = 30 * 24 * 60 * 60;
   response.cookies.set("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: thirtyDays,
+    expires: new Date(Date.now() + thirtyDays * 1000),
     path: "/",
   });
 
